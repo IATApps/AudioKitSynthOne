@@ -121,7 +121,7 @@ If you make an app with this code, please let us know! We think you're awesome, 
 
 We have most of the cool stuff (Filters, Oscillators, Effects, etc) abstracted out into the main [AudioKit](https://audiokitpro.com/audiokit/) library. Use those building blocks to create your own app!  
 
-*IMPORTANT:* You must change the graphics if you upload this to the app store. 
+*SUPER IMPORTANT:* You must change the graphics & UI significantly if you upload this to the app store. Apple has a rule (4.1) about copycat apps in the app store. They will eventually catch up to you. And, one developer has had his Developer account banned for taking advantage of this code. Don't let it happen to you. Synth One is a *really* popular app in the app store, and Apple has featured it in Retail Stores across the United States. If you have questions, feel free to email us at hello@audiokitpro.com, and we can give everyone a heads up that your app is okay (if it follows the rules). We don't want anyone to lose their developer account over this code. 🙏
 
 *IMPORTANT:* You must fill in your own private API keys for AudioBus and others in the Private.swift file to match your own project. The default placeholder values are not suitable for distribution.
 
