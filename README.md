@@ -10,6 +10,9 @@ introduce new features, fix bugs, improve efficiency, and keep the synthesizer u
 new capabilities of the base operating system.  
 ![Screenshot](http://audiokitpro.com/images/ak2.gif)
 
+**“AudioKit Synth One is a wonderful example of how iPad can change the way music is made.”**  
+– Apple, App Store Editorial Team
+
 If you're new to [AudioKit](https://audiokitpro.com/), you can learn more: [here](https://audiokitpro.com/audiokit/). This code and app is made possible by all the contributors to AudioKit. Many of the features of Synth One are availble as modules in AudioKit, allowing you easy access to oscillators, filters, reverbs, effects, and other DSP processing: [code here](https://github.com/AudioKit/AudioKit). 
 
 ## Features & App Store Location
@@ -83,13 +86,9 @@ Here's a few ideas for you to contribute to this historic project:
 
 * Ability to search presets
 * Double tap knobs to go to defaults
-*  Midi Learn Matrix. Create a view that will allow users to easily change the MIDI Learn assignments.
-* Create iPhone or Universal interface
+* Midi Learn Matrix. Create a view that will allow users to easily change the MIDI Learn assignments.
 * Make TouchPads assignable 
 * Add an EQ Panel (8-band/16-band/etc)
-* Improve Arp (Add Gate, Beat Divisions, etc)
-* Add a trance/rhythm gate panel
-* Add a side chain/volume ducking panel
 * Add the ability for Sequencer to modulate more parameters
 * Filter key tracking options & settings
 * Filter velocity settings
