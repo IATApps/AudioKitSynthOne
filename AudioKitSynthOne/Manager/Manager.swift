@@ -50,7 +50,7 @@ public class Manager: UpdatableViewController {
     var midiChannelIn: MIDIChannel = 0
     var midiInputs = [MIDIInput]()
     var omniMode = true
-    var notesFromMIDI = Set<MIDINoteNumber>()
+    var noteTracker = MIDINoteTracker()
     var appSettings = AppSettings()
     var isDevView = false
 
@@ -235,6 +235,7 @@ public class Manager: UpdatableViewController {
             self.keyboardRightConstraint.constant = 72.5
         }
 
+        setupNoteTrackerActions()
     }
     
     override public var prefersHomeIndicatorAutoHidden: Bool {
@@ -395,7 +396,6 @@ public class Manager: UpdatableViewController {
         if isMono != monoButton.value {
             monoButton.value = isMono
             self.keyboardView.polyphonicMode = isMono > 0 ? false : true
-		
         }
 
         if parameter == .cutoff {

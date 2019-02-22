@@ -10,6 +10,26 @@
 
 extension Manager: AKMIDIListener {
 
+    func setupNoteTrackerActions() {
+        noteTracker.addAction(.on({ (noteNumber: MIDINoteNumber, velocity: MIDIVelocity) in
+            self.keyboardView.pressAdded(noteNumber, velocity: velocity)
+            //AKLog("keybboard:pressAdded: noteNumber: \(noteNumber), velocity:\(velocity) SYNC")
+        }))
+
+        noteTracker.addAction(.off({ (noteNumber: MIDINoteNumber, velocity: MIDIVelocity) in
+            self.keyboardView.pressRemoved(noteNumber)
+            //AKLog("keybboard:pressRemoved: noteNumber: \(noteNumber), velocity:\(velocity) SYNC")
+            // KURT - this should be something that only the monophonic note tracker performs
+            // Mono Mode
+            // if in Mono Mode, then select the most recently pressed note and start it up
+            if !self.keyboardView.polyphonicMode {
+                guard let nextActiveNote = self.noteTracker.mostRecentNote else { return }
+                self.keyboardView.pressAdded(nextActiveNote, velocity: velocity)
+                //AKLog("keybboard:pressAdded: noteNumber: \(noteNumber), velocity:\(velocity) SYNC")
+            }
+        }))
+    }
+
     public func receivedMIDINoteOn(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
         guard channel == midiChannelIn || omniMode else { return }
         var newVelocity = velocity
@@ -17,31 +37,22 @@ extension Manager: AKMIDIListener {
 
         if !Thread.isMainThread {
             DispatchQueue.main.async {
-                self.keyboardView.pressAdded(noteNumber, velocity: newVelocity)
-                self.notesFromMIDI.insert(noteNumber)
-                AKLog("keybboard:pressAdded: noteNumber: \(noteNumber), velocity:\(velocity) ASYNC")
+                self.noteTracker.noteOn(channel: channel, noteNumber: noteNumber, velocity: newVelocity)
             }
         } else {
-            keyboardView.pressAdded(noteNumber, velocity: newVelocity)
-            notesFromMIDI.insert(noteNumber)
-            AKLog("keybboard:pressAdded: noteNumber: \(noteNumber), velocity:\(velocity) SYNC")
+            self.noteTracker.noteOn(channel: channel, noteNumber: noteNumber, velocity: newVelocity)
         }
     }
 
     public func receivedMIDINoteOff(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
         guard (channel == midiChannelIn || omniMode) && !keyboardView.holdMode else { return }
 
-        DispatchQueue.main.async {
-            self.keyboardView.pressRemoved(noteNumber)
-            self.notesFromMIDI.remove(noteNumber)
-
-            // Mono Mode
-            if !self.keyboardView.polyphonicMode {
-                let remainingNotes = self.notesFromMIDI.filter { $0 != noteNumber }
-                if let highest = remainingNotes.max() {
-                    self.keyboardView.pressAdded(highest, velocity: velocity)
-                }
+        if !Thread.isMainThread {
+            DispatchQueue.main.async {
+                self.noteTracker.noteOff(channel: channel, noteNumber: noteNumber, velocity: velocity)
             }
+        } else {
+            self.noteTracker.noteOff(channel: channel, noteNumber: noteNumber, velocity: velocity)
         }
     }
 
@@ -57,7 +68,12 @@ extension Manager: AKMIDIListener {
     // MIDI Controller input
     public func receivedMIDIController(_ controller: MIDIByte, value: MIDIByte, channel: MIDIChannel) {
         guard channel == midiChannelIn || omniMode else { return }
-        /// AKLog("Channel: \(channel+1) controller: \(controller) value: \(value)")
+        AKLog("Channel: \(channel+1) controller: \(controller) value: \(value)")
+
+        // KURT this should also involve a check if we are in MPE mode
+        if self.keyboardView.polyphonicMode == false && channel != self.noteTracker.mostRecentChannel {
+            return
+        }
 
         // If any MIDI Learn knobs are active, assign the CC
         DispatchQueue.main.async {
