@@ -27,7 +27,9 @@ class TuningsPanelController: PanelController {
     @IBOutlet weak var diceButton: UIButton!
     @IBOutlet weak var importButton: SynthButton!
     @IBOutlet weak var tuneUpBackButtonButton: SynthButton!
-
+    @IBOutlet weak var tuneUpButton: SynthButton!
+    @IBOutlet weak var tuneUpBackLabel: UILabel!
+    
     ///Model
     let tuningModel = Tunings()
     var getStoreTuningWithPresetValue = false
@@ -110,7 +112,6 @@ class TuningsPanelController: PanelController {
                     if let url = appDelegate.applicationLaunchedWithURL() {
                         AKLog("launched with url:\(url)")
                         _ = self.openUrl(url: url)
-                        appDelegate.clearLaunchOptions()
 
                         // if url is a file in app Inbox remove it
                         AKLog("removing temporary file at \(url)")
@@ -129,6 +130,11 @@ class TuningsPanelController: PanelController {
             self.tuningModel.tuneUpBackButton()
             self.tuneUpBackButtonButton.value = 0
         }
+
+        tuneUpButton.callback = { value in
+            self.performSegue(withIdentifier: "SegueToTuneUp", sender: nil)
+            self.tuneUpButton.value = 0
+        }
     }
 
     public override func viewDidAppear(_ animated: Bool) {
@@ -145,7 +151,7 @@ class TuningsPanelController: PanelController {
     }
 
     @IBAction func randomPressed(_ sender: UIButton) {
-        guard tuningModel.isTuningReady else { return }
+        guard tuningModel.isInitialized else { return }
         tuningModel.randomTuning()
         selectRow()
         UIView.animate(withDuration: 0.4, animations: {
@@ -156,7 +162,7 @@ class TuningsPanelController: PanelController {
     }
 
     internal func selectRow() {
-        guard tuningModel.isTuningReady else { return }
+        guard tuningModel.isInitialized else { return }
 
         let bankPath = IndexPath(row: tuningModel.selectedBankIndex, section: 0)
         tableView(tuningBankTableView, didSelectRowAt: bankPath)
@@ -166,7 +172,7 @@ class TuningsPanelController: PanelController {
     }
 
     public func setTuning(name: String?, masterArray master: [Double]?) {
-        guard tuningModel.isTuningReady else { return }
+        guard tuningModel.isInitialized else { return }
         let reload = tuningModel.setTuning(name: name, masterArray: master)
         if reload {
             tuningTableView.reloadData()
@@ -175,13 +181,13 @@ class TuningsPanelController: PanelController {
     }
 
     public func setDefaultTuning() {
-        guard tuningModel.isTuningReady else { return }
+        guard tuningModel.isInitialized else { return }
         tuningModel.resetTuning()
         selectRow()
     }
 
     public func getTuning() -> (String, [Double]) {
-        guard tuningModel.isTuningReady else { return ("", [1]) }
+        guard tuningModel.isInitialized else { return ("", [1]) }
         return tuningModel.getTuning()
     }
 
@@ -198,8 +204,25 @@ class TuningsPanelController: PanelController {
         }
         return retVal
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if segue.identifier == "SegueToTuneUp" {
+            guard let popOverController = segue.destination as? TuneUpPopUp else { return }
+            popOverController.delegate = self
+        }
+    }
 }
 
+extension TuningsPanelController: TuneUpPopUpDelegate {
+    func wilsonicPressed() {
+        launchWilsonic()
+    }
+    
+    func d1Pressed() {
+        launchD1()
+    }
+}
 
 // MARK: - TuningsPitchWheelViewTuningDidChange
 
@@ -214,9 +237,14 @@ extension TuningsPanelController: TuningsPitchWheelViewTuningDidChange {
 
 extension TuningsPanelController {
 
-    // MARK: - launch D1
+    // MARK: - Launch applications that support TuneUp
+
     public func launchD1() {
         tuningModel.launchD1()
+    }
+
+    public func launchWilsonic() {
+        tuningModel.launchWilsonic()
     }
 }
 

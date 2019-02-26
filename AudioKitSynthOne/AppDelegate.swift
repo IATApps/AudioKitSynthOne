@@ -20,8 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
 
-        //TODO: store launch options...tuning model should read url, then clear this url
-        print("launchOptions:\(String(describing: launchOptions))")
+        //print("launchOptions:\(String(describing: launchOptions))") // AKLog is not enabled at this point
         self.launchOptions = launchOptions
 
         // Never Sleep mode is false
@@ -75,16 +74,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         conductor.stopEngine()
     }
 
-    /// Handle opening scala files, or,
-    /// Custom URL Scheme for octave-based tunings
-    /// query host = "tune"
-    /// args are Strings
-    /// tuningName
-    /// f frequency
-    /// frequencyMiddleC
-    ///
-    /// query host = "tune", "tuneup", "open", "redirect"
-    /// no args
+    /// TuneUp
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
 
         // on launch tuningsPanel is not yet created -> fall back to tunings model initialization
@@ -96,12 +86,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // open url
         _ = tuningsPanel.openUrl(url: url)
 
-        // if url is a file in Inbox remove it
-        AKLog("removing temporary file at \(url)")
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch let error as NSError {
-            AKLog("error removing temporary file at \(url): \(error)")
+        // if url is a file in Inbox remove it (i.e., Scala file)
+        if url.isFileURL {
+            AKLog("removing temporary file at \(url)")
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch let error as NSError {
+                AKLog("error removing temporary file at \(url): \(error)")
+            }
         }
 
         return true
@@ -116,10 +108,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate {
 
     public func applicationLaunchedWithURL() -> URL? {
-        return self.launchOptions?[.url] as? URL
-    }
-
-    public func clearLaunchOptions() {
+        let launchUrl = self.launchOptions?[.url] as? URL
         self.launchOptions = nil
+        return launchUrl
     }
+    
 }
